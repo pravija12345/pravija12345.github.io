@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Graph Dynamic - Apache ECharts Demo</title>
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar input[type="file"] {
+      display: outside;
+      background-color: #fff;
+      color: #333;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .navbar label[for="uploadfile"] {
+      background-color: #fff;
+      color: #333;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .navbar select, .navbar button {
+      background-color: #fff;
+      color: #333;
+      margin-right: 10px;
+      border-radius: 4px;
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .navbar select {
+      width: 200px;
+    }
+
+    #uploadconfirm {
+      background-color: #fff;
+      color: #333;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart-container"></div>
+  <div class="navbar">
+    <!-- <label for="uploadfile">Upload File</label> -->
+    <input type="file" id="uploadfile" accept=".csv">
+    <button id="uploadconfirm">Upload</button>
+    <label for="sourceNode">Select source node:</label>
+    <select id="sourceNode" > <option value="-1">Select</option>
+    </select>
+    <label for="targetNode">Select target node:</label>
+    <select id="targetNode"> <option value="-1">Select</option></select>
+  </div>
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+  <script src="./index.js"></script>
+</body>
+</html>

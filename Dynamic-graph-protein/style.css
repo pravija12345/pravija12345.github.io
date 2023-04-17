@@ -1,0 +1,14 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+#chart-container {
+  position: relative;
+  height: 120vh;
+  overflow: visible;
+  max-width: 65%;
+  left: 50%;
+  transform: translateX(-50%);
+ 
+}
+
