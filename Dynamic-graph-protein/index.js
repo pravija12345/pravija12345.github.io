@@ -11,7 +11,6 @@ const uploadconfirm = document.getElementById('uploadconfirm');
 uploadconfirm.addEventListener('click', () => {
   const file = document.getElementById('uploadfile').files[0];
   const reader = new FileReader();
-
   reader.onload = (event) => {
     const csvData = event.target.result;
     const results = Papa.parse(csvData, { header: true }).data;
@@ -34,86 +33,48 @@ uploadconfirm.addEventListener('click', () => {
       };
     });
 //calculating mutations
-function findMutations(seq1, seq2) {
-  const mutations = [];
-  for (var i = 1; i < seq1.length; i++) {
-    if (seq1[i] !== seq2[i]) {
-      mutations.push(`${seq2[i]}`);
-    }
-  } 
-  return mutations;
-}
-const mutations=[]
-for(let i = 0; i < dataArray.length-1; i++){
-  const mutation=[];
-  for(let j = 0; j < dataArray.length-1; j++){ 
-  mutation.push(findMutations(dataArray[i]['amino_seq'], dataArray[j]['amino_seq']));
-}
- mutations[i+1]=mutation;
-}
-edges_nodes=[]
-const mutation1 = {}; 
 seq_index=['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-for (let i = 0; i < dataArray.length; i++) {
-  const mutation2 = dataArray[i]['mutation'];
-  const diff = [];
-  for (let key in mutation2) {
-    if (mutation1[key] !== mutation2[key]) {
-        diff.push(seq_index[mutation2[key]]);
+//new edges
+new_edges={};
+for(let i=0;i<dataArray.length-1;i++){ 
+    const muta = dataArray[i]['mutation'];
+    const diff={};
+    for(let key in muta){
+       diff[key]=seq_index[muta[key]];
     }
-  } 
-  edges_nodes[i]=diff;
+    new_edges[i+2]=diff;
 }
-mutations[0]=edges_nodes
+console.log(new_edges[2]);
 //source dropdown
 const sourceNode = document.getElementById('sourceNode');
 const nodes_length=dataArray.length
-    for (let i = 0; i < nodes_length; i++) {
+    for(let i = 0; i < dataArray.length-1; i++) {
       const option = document.createElement('option');
-      option.value = i;
-      option.text = `Node ${i}`;
+      option.value = i+2;
+      option.text = `Node ${i+2}`;
       sourceNode.appendChild(option);
     }
     let selectedNodeId = 0;
-//target dropdown
-const targetNode = document.getElementById("targetNode");
-for (let i = 0; i < nodes_length; i++) {
-  const option = document.createElement('option');
-  option.value = i;
-  option.text = `Node ${i}`;
-  targetNode.appendChild(option);
-}
 sourceNode.addEventListener('change', (event) => {
-      let myChart = echarts.init(document.getElementById('chart-container'));
-      myChart.clear();
-      
-      selectedNodeId = event.target.value;
-      //calculating mutations
-      edges_nodes=mutations[selectedNodeId];  
-//loading data into nodes and edges
+  let myChart = echarts.init(document.getElementById('chart-container'));
+  myChart.clear();
+  selectedNodeId = event.target.value;
+//All nodes
+if(parseInt(selectedNodeId)===-1){
   const data = [];
   const edges = [];
 
-  for (let i = 0; i < dataArray.length; i++) {
+  for (let i = 2; i <= dataArray.length; i++) {
     let isFixed = false;
     let x_value = Math.random() * (myChart.getWidth()-50);
       let y_value = Math.random() * (myChart.getHeight()-50 );
     let nodeColor = '#034f84'; 
     let size=25;
-    if (i === parseInt(selectedNodeId)) {
-      console.log("Hi"); 
-        isFixed = true;
-        size= 30,
-        x_value = myChart.getWidth() / 2;
-        y_value = myChart.getHeight() / 2;
-        console.log(x_value);
-        console.log(y_value);
-        nodeColor = '#c94c4c'; 
-    }
+    let mut=new_edges[i];
     data.push({
         id: i,
-        mutation: `${edges_nodes[i-1]}`,
+        mutation: `${mut}`,
         x: x_value,
         y: y_value,
         symbolSize: size,
@@ -129,30 +90,33 @@ sourceNode.addEventListener('change', (event) => {
     });
 }
 //edges
-for (let i = 0; i < edges_nodes.length; i++) {
-
-  if( i+1!==selectedNodeId){ 
+for (let i = 2; i <= dataArray.length; i++) {
+ for(let key in new_edges[i]){
     edges.push({ 
-      source: selectedNodeId,
-      target: i+1,
+      source: i-2,
+      target: key,
       label: {
         show: false,
         fontSize: 20,
-        formatter: `${edges_nodes[i]}`,
+        formatter: `${new_edges[i][key]}`,
         color: '#c83349' 
       },
       itemStyle: {
         color: '#82b74b' 
+      },
+      lineStyle: {
+        width: 3,
+        type: 'solid'
       },
       emphasis: {
         label: {
           show: true
         }
       } 
+
     });
   }
 }
-//display tooltip when user hover on nodes
   myChart.setOption({
     title: {
       top: 'bottom',
@@ -160,25 +124,21 @@ for (let i = 0; i < edges_nodes.length; i++) {
     },
     tooltip: {
       enterable: true,
-      // hideDelay: 50000000,
       hideOnClick: false,
       show: true,
       formatter: function(params) {
-
-        let num_selectedNodeId=parseInt(selectedNodeId);
-        if((params.dataType === 'node' && params.data.id===num_selectedNodeId )){
-          return 'Node : '+ selectedNodeId;
-       }
-       var id=params.data.id-1;
-        if (params.dataType === 'node' && edges_nodes[id]!=0){
+        if (params.dataType === 'node' ){
           
          var data = params.data;
-        return  'Source Node : ' +selectedNodeId+'<br>'+ 'Target Node : ' + data.id + '<br>' +'Mutation : '+ data.mutation;
+           muta=[]
+         for(let key in new_edges[data.id]){
+              muta.push(" "+key+ " : "+new_edges[data.id][key]+" ");
+         }
+         if(muta.length===0)
+         return   'Node : ' + data.id + '<br>' +'No Mutation';  
+        return   'Node : ' + data.id + '<br>' +'Mutation : '+ muta;
       }
-      if (params.dataType === 'node'){
-        var data = params.data;
-       return  'Source Node : ' +selectedNodeId+'<br>'+ 'Target Node : ' + data.id + '<br>' +'Zero Mutation';
-      }
+      
     }
     },
     series: [
@@ -187,10 +147,135 @@ for (let i = 0; i < edges_nodes.length; i++) {
         type: 'graph',
         animation:false,
         layout:'force',
+        data: data,
+        force: {
+                  repulsion: 200,
+                  edgeLength: 300
+         },
+        edges: edges,
+        emphasis: {
+          focus: 'adjacency',
+          itemStyle: {
+            color: '#c94c4c', 
+            borderWidth: 3 
+          },
+          lineStyle: {
+            color: '#f00',
+            width: 3 
+          },
+          label: {
+            show: true,
+           }
+          
+        } 
+      }
+    ]
+  });
+}
+//particular node
+if(parseInt(selectedNodeId)!==-1){ 
+const edges = [];
+const keys=[]
+const data = [
+  {
+    fixed: true,
+    x: myChart.getWidth() / 2,
+    y: myChart.getHeight() / 2,
+    symbolSize: 30,
+    id: selectedNodeId,
+    mutation: `${new_edges[selectedNodeId]}`,
+    label: {
+          show: true,
+          formatter: `${selectedNodeId}`,
+          position: 'inside'
+      },
+      itemStyle: {
+          color: '#c94c4c' 
+      }
+  }
+];
+keys.push(selectedNodeId);
+for(key in new_edges[selectedNodeId]){
+  
+     keys.push(key);
+}
+for (let i = 0; i < keys.length; i++) {
+  let isFixed = false;
+  let nodeColor = '#034f84'; 
+  let size=25;
+  let mut=new_edges[keys[i]];
+  if(selectedNodeId!==keys[i]){
+  data.push({
+      id: keys[i],
+      mutation: `${mut}`,
+      symbolSize: size,
+      fixed: isFixed,
+      label: {
+          show: true,
+          formatter: `${keys[i]}`,
+          position: 'inside'
+      },
+      itemStyle: {
+          color: nodeColor 
+      }
+  });
+}
+  if(selectedNodeId!==keys[i]){
+    edges.push({ 
+      source: selectedNodeId,
+      target: keys[i],
+      label: {
+        show: true,
+        fontSize: 20,
+        formatter: `${new_edges[selectedNodeId][keys[i]]}`,
+        color: '#c83349' 
+      },
+      itemStyle: {
+        color: '#82b74b' 
+      },
+      lineStyle: {
+        width: 3,
+        type: 'solid'
+      },
+      emphasis: {
+        label: {
+          show: true
+        }
+      } 
+    });
+  }
+  myChart.setOption({
+    title: {
+      top: 'bottom',
+      left: 'right'
+    },
+    tooltip: {
+      show: true,
+      formatter: function(params) { 
+        if (params.dataType === 'node' ){ 
+         var data = params.data;
+           muta=[]
+         for(let key in new_edges[data.id]){
+              muta.push(new_edges[data.id][key]);
+         }
+         console.log(data.x);
+         if(muta.length===0)
+         return   'Node : ' + data.id + '<br>' +'No Mutation';  
+        return   'Node : ' + data.id + '<br>' +'Mutation : '+ muta;
+      }
+      
+    }
+    },
+    series: [
+      {
+        roam:false,
+        animation:false,
+        type: 'graph',
+        layout:'force',
         draggable: true,
         data: data,
         force: {
-                  repulsion: 100,
+                  repulsion: 2000,
                   edgeLength: 200
          },
         edges: edges,
@@ -204,43 +289,15 @@ for (let i = 0; i < edges_nodes.length; i++) {
             color: '#f00',
             width: 3 
           }
-        }
+          
+        } 
       }
     ]
   });
-  //display and higlight the source and target nodes when user selects the target node from dropdown
-  let keepTooltipVisible = false;
-  targetNode.addEventListener('change', (event) => {
-    
-    targetselectedNodeId = event.target.value;
-    myChart.dispatchAction({
-      type: 'highlight',
-      seriesIndex: 0,
-      dataIndex: targetselectedNodeId
-    });
-    keepTooltipVisible = true;
-    setTimeout(() => {
-      myChart.dispatchAction({
-        type: 'showTip',
-        seriesIndex: 0,
-        dataIndex: targetselectedNodeId
-      });
-    }, 50);
-
-  });
- 
-    });
-    
-    myChart.getZr().on('click', function() {
-      if (!keepTooltipVisible) {
-        myChart.dispatchAction({
-          type: 'hideTip'
-        });
-      }
-      keepTooltipVisible = false;
-    });
-window.addEventListener('resize', myChart.resize);
-  };
-
-  reader.readAsText(file);
+}
+}
+});
+  window.addEventListener('resize', myChart.resize);
+};
+reader.readAsText(file);
 });
