@@ -43,7 +43,7 @@ for(let i=0;i<dataArray.length-1;i++){
     for(let key in muta){
        diff[key]=seq_index[muta[key]];
     }
-    new_edges[i+2]=diff;
+    new_edges[i+1]=diff;
 }
 console.log(new_edges[2]);
 //source dropdown
@@ -51,8 +51,8 @@ const sourceNode = document.getElementById('sourceNode');
 const nodes_length=dataArray.length
     for(let i = 0; i < dataArray.length-1; i++) {
       const option = document.createElement('option');
-      option.value = i+2;
-      option.text = `Node ${i+2}`;
+      option.value = i+1;
+      option.text = `Node ${i+1}`;
       sourceNode.appendChild(option);
     }
     let selectedNodeId = 0;
@@ -60,12 +60,12 @@ sourceNode.addEventListener('change', (event) => {
   let myChart = echarts.init(document.getElementById('chart-container'));
   myChart.clear();
   selectedNodeId = event.target.value;
-//Select All nodes 
+//All nodes
 if(parseInt(selectedNodeId)===-1){
   const data = [];
   const edges = [];
 
-  for (let i = 2; i <= dataArray.length; i++) {
+  for (let i = 1; i < dataArray.length; i++) {
     let isFixed = false;
     let x_value = Math.random() * (myChart.getWidth()-50);
       let y_value = Math.random() * (myChart.getHeight()-50 );
@@ -90,10 +90,10 @@ if(parseInt(selectedNodeId)===-1){
     });
 }
 //edges
-for (let i = 2; i <= dataArray.length; i++) {
+for (let i = 1; i < dataArray.length; i++) {
  for(let key in new_edges[i]){
     edges.push({ 
-      source: i-2,
+      source: i-1,
       target: key,
       label: {
         show: false,
@@ -260,8 +260,10 @@ for (let i = 0; i < keys.length; i++) {
          }
          console.log(data.x);
          if(muta.length===0)
-         return   'Node : ' + data.id + '<br>' +'No Mutation';  
-        return   'Node : ' + data.id + '<br>' +'Mutation : '+ muta;
+           return   'Node : ' + data.id + '<br>' +'No Mutation';  
+         if(parseInt(data.id)===parseInt(selectedNodeId))
+           return   'Node : ' + data.id + '<br>' +'Mutation : '+ muta;
+           return   'Node : ' + data.id ;
       }
       
     }
