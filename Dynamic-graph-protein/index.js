@@ -60,7 +60,7 @@ sourceNode.addEventListener('change', (event) => {
   let myChart = echarts.init(document.getElementById('chart-container'));
   myChart.clear();
   selectedNodeId = event.target.value;
-//All nodes
+//Select All nodes 
 if(parseInt(selectedNodeId)===-1){
   const data = [];
   const edges = [];
